@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>监控系统后台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "SimSun", sans-serif;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ========== 登录页面 ========== */
+        #loginPage {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a1628 0%, #0d2847 50%, #061224 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .login-title {
+            color: #4a9eff;
+            font-size: 28px;
+            letter-spacing: 8px;
+            margin-bottom: 50px;
+            text-shadow: 0 0 20px rgba(74, 158, 255, 0.5);
+            font-weight: normal;
+        }
+
+        .login-box {
+            width: 360px;
+            padding: 40px;
+            background: rgba(13, 40, 71, 0.6);
+            border: 1px solid #1e5a9e;
+            border-radius: 4px;
+            box-shadow: 0 0 30px rgba(0, 100, 200, 0.2);
+        }
+
+        .login-label {
+            color: #7fb3e6;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: block;
+            letter-spacing: 2px;
+        }
+
+        #passwordInput {
+            width: 100%;
+            height: 42px;
+            padding: 0 15px;
+            background: #0a1a2e;
+            border: 1px solid #2a5a8a;
+            color: #c8e0ff;
+            font-size: 16px;
+            letter-spacing: 3px;
+            outline: none;
+            border-radius: 2px;
+            margin-bottom: 25px;
+        }
+
+        #passwordInput:focus {
+            border-color: #4a9eff;
+            box-shadow: 0 0 8px rgba(74, 158, 255, 0.4);
+        }
+
+        #passwordInput.error {
+            border: 2px solid #ff4444;
+            animation: shake 0.3s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .error-tip {
+            display: none;
+            background: #fff;
+            border: 2px solid #ff4444;
+            color: #cc0000;
+            padding: 10px 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+            border-radius: 2px;
+        }
+
+        .error-tip.show {
+            display: block;
+        }
+
+        #loginBtn {
+            width: 100%;
+            height: 42px;
+            background: linear-gradient(90deg, #1a5a9e, #0d3b73);
+            border: 1px solid #2a6ab0;
+            color: #d0e4ff;
+            font-size: 15px;
+            letter-spacing: 4px;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.2s;
+        }
+
+        #loginBtn:hover {
+            background: linear-gradient(90deg, #246bb8, #144a8a);
+            box-shadow: 0 0 15px rgba(74, 158, 255, 0.4);
+        }
+
+        .login-success {
+            display: none;
+            color: #4ade80;
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+        }
+
+        .login-success.show {
+            display: block;
+        }
+
+        /* ========== 主监控页面 ========== */
+        #mainPage {
+            display: none;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #071428 0%, #0d2240 50%, #051020 100%);
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .header {
+            height: 60px;
+            background: linear-gradient(90deg, #0a1d38, #0d2847, #0a1d38);
+            border-bottom: 1px solid #1e4a7a;
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+            justify-content: space-between;
+        }
+
+        .header-title {
+            color: #5aa0ff;
+            font-size: 18px;
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px rgba(90, 160, 255, 0.4);
+        }
+
+        .header-status {
+            color: #4ade80;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .main-container {
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .query-section {
+            width: 100%;
+            max-width: 700px;
+            margin-bottom: 40px;
+        }
+
+        .query-title {
+            color: #7fb3e6;
+            font-size: 16px;
+            text-align: center;
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+        }
+
+        .time-display {
+            width: 100%;
+            height: 48px;
+            background: #0a1a2e;
+            border: 1px solid #2a5a8a;
+            color: #ffd700;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 2px;
+            letter-spacing: 1px;
+            font-family: "Consolas", monospace;
+            transition: all 0.2s;
+        }
+
+        .time-display:hover {
+            border-color: #4a9eff;
+            box-shadow: 0 0 10px rgba(74, 158, 255, 0.3);
+        }
+
+        /* 时间选择器弹窗 */
+        .time-picker-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .time-picker-modal.show {
+            display: flex;
+        }
+
+        .time-picker-box {
+            background: #0d2240;
+            border: 1px solid #2a5a8a;
+            border-radius: 4px;
+            padding: 25px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 0 40px rgba(0, 100, 200, 0.3);
+        }
+
+        .picker-label {
+            color: #7fb3e6;
+            font-size: 13px;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .time-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .time-column-group {
+            flex: 1;
+            display: flex;
+            gap: 5px;
+        }
+
+        .time-separator {
+            color: #ffd700;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 0 10px;
+        }
+
+        .scroll-column {
+            flex: 1;
+            height: 180px;
+            overflow-y: scroll;
+            background: #0a1a2e;
+            border: 1px solid #1e4a7a;
+            border-radius: 2px;
+            text-align: center;
+            scrollbar-width: thin;
+            scrollbar-color: #2a5a8a #0a1a2e;
+        }
+
+        .scroll-column::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scroll-column::-webkit-scrollbar-track {
+            background: #0a1a2e;
+        }
+
+        .scroll-column::-webkit-scrollbar-thumb {
+            background: #2a5a8a;
+            border-radius: 3px;
+        }
+
+        .scroll-item {
+            height: 36px;
+            line-height: 36px;
+            color: #6a90b8;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .scroll-item:hover {
+            background: #1a3a5e;
+            color: #a0c8f0;
+        }
+
+        .scroll-item.selected {
+            background: #1e5a9e;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .picker-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .btn-cancel, .btn-confirm {
+            flex: 1;
+            height: 40px;
+            border: none;
+            font-size: 14px;
+            letter-spacing: 3px;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel {
+            background: #1a2a3e;
+            border: 1px solid #3a5a7a;
+            color: #9ab8d8;
+        }
+
+        .btn-cancel:hover {
+            background: #253a52;
+        }
+
+        .btn-confirm {
+            background: linear-gradient(90deg, #1a5a9e, #0d3b73);
+            border: 1px solid #2a6ab0;
+            color: #d0e4ff;
+        }
+
+        .btn-confirm:hover {
+            background: linear-gradient(90deg, #246bb8, #144a8a);
+            box-shadow: 0 0 10px rgba(74, 158, 255, 0.4);
+        }
+
+        /* 操作按钮区 */
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            margin-top: 25px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            width: 140px;
+            height: 42px;
+            border: none;
+            font-size: 15px;
+            letter-spacing: 4px;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.2s;
+        }
+
+        /* 结果展示区 */
+        #resultArea {
+            width: 100%;
+            max-width: 800px;
+            min-height: 100px;
+        }
+
+        .result-tip {
+            color: #ffd700;
+            font-size: 16px;
+            text-align: center;
+            padding: 30px;
+            letter-spacing: 2px;
+            display: none;
+        }
+
+        .result-tip.show {
+            display: block;
+        }
+
+        /* 记录条目 */
+        .record-list {
+            display: none;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .record-list.show {
+            display: flex;
+        }
+
+        .record-item {
+            background: rgba(13, 40, 71, 0.5);
+            border: 1px solid #1e4a7a;
+            border-radius: 4px;
+            padding: 20px;
+        }
+
+        .record-text {
+            color: #ffd700;
+            font-family: "SimSun", "宋体", serif;
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .record-img {
+            width: 100%;
+            max-width: 500px;
+            height: 280px;
+            background: #0a1525;
+            border: 1px dashed #2a5a8a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #5a7a9a;
+            font-size: 14px;
+            margin: 0 auto;
+            border-radius: 2px;
+        }
+
+        .record-img img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        /* 响应式 - 手机适配 */
+        @media (max-width: 600px) {
+            .login-box {
+                width: 85%;
+                padding: 30px 25px;
+            }
+
+            .login-title {
+                font-size: 20px;
+                letter-spacing: 4px;
+            }
+
+            .time-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .time-separator {
+                transform: rotate(90deg);
+                padding: 5px 0;
+            }
+
+            .scroll-column {
+                height: 140px;
+            }
+
+            .header {
+                padding: 0 15px;
+                height: 50px;
+            }
+
+            .header-title {
+                font-size: 14px;
+                letter-spacing: 2px;
+            }
+
+            .action-btn {
+                width: 110px;
+                font-size: 13px;
+                letter-spacing: 2px;
+            }
+
+            .record-text {
+                font-size: 14px;
+            }
+
+            .record-img {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 登录页面 -->
+<div id="loginPage">
+    <h1 class="login-title">监控系统身份验证</h1>
+    <div class="login-box">
+        <div class="error-tip" id="errorTip">请正确输入密码</div>
+        <div class="login-success" id="loginSuccess">您已成功登录</div>
+        <label class="login-label">管理员密码</label>
+        <input type="password" id="passwordInput" placeholder="请输入密码" autocomplete="off">
+        <button id="loginBtn">登 录</button>
+    </div>
+</div>
+
+<!-- 主监控页面 -->
+<div id="mainPage">
+    <div class="header">
+        <div class="header-title">■ 视频监控检索系统 V2.4</div>
+        <div class="header-status">
+            <span class="status-dot"></span>
+            <span>系统运行正常</span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="query-section">
+            <div class="query-title">查询时间</div>
+            <div class="time-display" id="timeDisplay" onclick="openTimePicker()">
+                点击选择时间范围
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-btn btn-cancel" onclick="resetTime()">取 消</button>
+                <button class="action-btn btn-confirm" onclick="doSearch()">确 定</button>
+            </div>
+        </div>
+
+        <div id="resultArea">
+            <div class="result-tip" id="resultTip">请搜索和剧情有关的时间哦～</div>
+
+            <div class="record-list" id="recordList">
+                <div class="record-item">
+                    <div class="record-text">21：40 杜浣熊进入办公室，21：50 走出办公室，看起来鬼鬼祟祟。</div>
+                    <div class="record-img" id="img1">
+                        <img src="走廊里的杜浣熊.png" alt="走廊里的杜浣熊" onerror="this.style.display='none';this.parentElement.innerHTML='走廊里的杜浣熊（图片占位，请将图片命名为「走廊里的杜浣熊.png」放在同目录）'">
+                    </div>
+                </div>
+
+                <div class="record-item">
+                    <div class="record-text">22：00 水滴鱼Johnson进入办公室，22：05 走出办公室，形迹可疑，神色古怪。</div>
+                    <div class="record-img" id="img2">
+                        <img src="走廊里的水滴鱼.png" alt="走廊里的水滴鱼" onerror="this.style.display='none';this.parentElement.innerHTML='走廊里的水滴鱼（图片占位，请将图片命名为「走廊里的水滴鱼.png」放在同目录）'">
+                    </div>
+                </div>
+
+                <div class="record-item">
+                    <div class="record-text">22：10 小螳｀进入办公室，22：25 走出办公室，行色匆匆。</div>
+                    <div class="record-img" id="img3">
+                        <img src="走廊里的小螳｀.png" alt="走廊里的小螳｀" onerror="this.style.display='none';this.parentElement.innerHTML='走廊里的小螳｀（图片占位，请将图片命名为「走廊里的小螳｀.png」放在同目录）'">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 时间选择器弹窗 -->
+<div class="time-picker-modal" id="timePickerModal">
+    <div class="time-picker-box">
+        <div class="picker-label">起始时间</div>
+        <div class="time-row">
+            <div class="time-column-group" id="startGroup"></div>
+        </div>
+
+        <div class="time-separator" style="text-align:center; margin: 10px 0;">—</div>
+
+        <div class="picker-label">结束时间</div>
+        <div class="time-row">
+            <div class="time-column-group" id="endGroup"></div>
+        </div>
+
+        <div class="picker-buttons">
+            <button class="btn-cancel" onclick="closeTimePicker()">取 消</button>
+            <button class="btn-confirm" onclick="confirmTime()">确 定</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 时间范围限制
+    const MIN_DATE = new Date(2024, 2, 1, 0, 0, 0); // 2024年3月1日 00:00:00
+    const MAX_DATE = new Date(2026, 5, 30, 10, 30, 0); // 2026年6月30日 10:30:00
+
+    // 剧情触发时间
+    const TRIGGER_START = { year: 2026, month: 6, day: 29, hour: 21, minute: 30, second: 0 };
+    const TRIGGER_END = { year: 2026, month: 6, day: 30, hour: 10, minute: 30, second: 0 };
+
+    // 当前选中的时间
+    let startTime = { year: 2026, month: 6, day: 29, hour: 21, minute: 30, second: 0 };
+    let endTime = { year: 2026, month: 6, day: 30, hour: 10, minute: 30, second: 0 };
+
+    // 登录功能
+    const passwordInput = document.getElementById('passwordInput');
+    const loginBtn = document.getElementById('loginBtn');
+    const errorTip = document.getElementById('errorTip');
+    const loginSuccess = document.getElementById('loginSuccess');
+    const loginPage = document.getElementById('loginPage');
+    const mainPage = document.getElementById('mainPage');
+
+    loginBtn.addEventListener('click', doLogin);
+    passwordInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') doLogin();
+    });
+
+    function doLogin() {
+        const pwd = passwordInput.value;
+        if (pwd === '123456') {
+            errorTip.classList.remove('show');
+            passwordInput.classList.remove('error');
+            loginSuccess.classList.add('show');
+            setTimeout(function() {
+                loginPage.style.display = 'none';
+                mainPage.style.display = 'block';
+            }, 800);
+        } else {
+            loginSuccess.classList.remove('show');
+            errorTip.classList.add('show');
+            passwordInput.classList.add('error');
+            passwordInput.value = '';
+            setTimeout(function() {
+                passwordInput.classList.remove('error');
+            }, 300);
+        }
+    }
+
+    // 生成时间选择器
+    function initTimePicker() {
+        generateTimeColumns('startGroup', startTime);
+        generateTimeColumns('endGroup', endTime);
+    }
+
+    function generateTimeColumns(containerId, timeObj) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+
+        const units = [
+            { key: 'year', min: 2024, max: 2026, suffix: '年' },
+            { key: 'month', min: 1, max: 12, suffix: '月' },
+            { key: 'day', min: 1, max: 31, suffix: '日' },
+            { key: 'hour', min: 0, max: 23, suffix: '时' },
+            { key: 'minute', min: 0, max: 59, suffix: '分' },
+            { key: 'second', min: 0, max: 59, suffix: '秒' }
+        ];
+
+        units.forEach(function(unit) {
+            const col = document.createElement('div');
+            col.className = 'scroll-column';
+            col.dataset.unit = unit.key;
+            col.dataset.prefix = containerId === 'startGroup' ? 'start' : 'end';
+
+            for (let i = unit.min; i <= unit.max; i++) {
+                const item = document.createElement('div');
+                item.className = 'scroll-item';
+                item.textContent = i + unit.suffix;
+                item.dataset.value = i;
+
+                if (timeObj[unit.key] === i) {
+                    item.classList.add('selected');
+                }
+
+                item.addEventListener('click', function() {
+                    selectItem(col, i);
+                    updateDays(containerId);
+                });
+
+                col.appendChild(item);
+            }
+
+            container.appendChild(col);
+        });
+
+        updateDays(containerId);
+    }
+
+    function selectItem(column, value) {
+        const items = column.querySelectorAll('.scroll-item');
+        items.forEach(function(item) {
+            item.classList.remove('selected');
+            if (parseInt(item.dataset.value) === value) {
+                item.classList.add('selected');
+                item.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
+        });
+    }
+
+    function updateDays(containerId) {
+        const group = document.getElementById(containerId);
+        const yearCol = group.querySelector('[data-unit="year"]');
+        const monthCol = group.querySelector('[data-unit="month"]');
+        const dayCol = group.querySelector('[data-unit="day"]');
+
+        const year = parseInt(yearCol.querySelector('.selected').dataset.value);
+        const month = parseInt(monthCol.querySelector('.selected').dataset.value);
+        const daysInMonth = new Date(year, month, 0).getDate();
+
+        const currentDay = dayCol.querySelector('.selected')
+            ? parseInt(dayCol.querySelector('.selected').dataset.value)
+            : 1;
+        const newDay = Math.min(currentDay, daysInMonth);
+
+        dayCol.innerHTML = '';
+        for (let i = 1; i <= daysInMonth; i++) {
+            const item = document.createElement('div');
+            item.className = 'scroll-item';
+            item.textContent = i + '日';
+            item.dataset.value = i;
+
+            if (i === newDay) {
+                item.classList.add('selected');
+            }
+
+            item.addEventListener('click', function() {
+                selectItem(dayCol, i);
+            });
+
+            dayCol.appendChild(item);
+        }
+    }
+
+    function getSelectedTime(prefix) {
+        const groupId = prefix + 'Group';
+        const group = document.getElementById(groupId);
+        return {
+            year: parseInt(group.querySelector('[data-unit="year"] .selected').dataset.value),
+            month: parseInt(group.querySelector('[data-unit="month"] .selected').dataset.value),
+            day: parseInt(group.querySelector('[data-unit="day"] .selected').dataset.value),
+            hour: parseInt(group.querySelector('[data-unit="hour"] .selected').dataset.value),
+            minute: parseInt(group.querySelector('[data-unit="minute"] .selected').dataset.value),
+            second: parseInt(group.querySelector('[data-unit="second"] .selected').dataset.value)
+        };
+    }
+
+    function formatTime(t) {
+        const pad = function(n) { return n.toString().padStart(2, '0'); };
+        return t.year + '年' + t.month + '月' + t.day + '日 ' +
+               pad(t.hour) + ':' + pad(t.minute) + ':' + pad(t.second);
+    }
+
+    function openTimePicker() {
+        initTimePicker();
+        document.getElementById('timePickerModal').classList.add('show');
+    }
+
+    function closeTimePicker() {
+        document.getElementById('timePickerModal').classList.remove('show');
+    }
+
+    function confirmTime() {
+        startTime = getSelectedTime('start');
+        endTime = getSelectedTime('end');
+
+        // 校验时间范围
+        const start = new Date(startTime.year, startTime.month - 1, startTime.day, startTime.hour, startTime.minute, startTime.second);
+        const end = new Date(endTime.year, endTime.month - 1, endTime.day, endTime.hour, endTime.minute, endTime.second);
+
+        if (start < MIN_DATE || end > MAX_DATE) {
+            alert('可选时间范围：2024年3月1日 00:00:00 至 2026年6月30日 10:30:00');
+            return;
+        }
+
+        if (start > end) {
+            alert('起始时间不能晚于结束时间');
+            return;
+        }
+
+        document.getElementById('timeDisplay').textContent =
+            formatTime(startTime) + '  —  ' + formatTime(endTime);
+        closeTimePicker();
+    }
+
+    function resetTime() {
+        startTime = { year: 2024, month: 3, day: 1, hour: 0, minute: 0, second: 0 };
+        endTime = { year: 2026, month: 6, day: 30, hour: 10, minute: 30, second: 0 };
+        document.getElementById('timeDisplay').textContent = '点击选择时间范围';
+        document.getElementById('resultTip').classList.remove('show');
+        document.getElementById('recordList').classList.remove('show');
+    }
+
+    function doSearch() {
+        const resultTip = document.getElementById('resultTip');
+        const recordList = document.getElementById('recordList');
+
+        // 检查是否匹配剧情时间
+        const matchStart =
+            startTime.year === TRIGGER_START.year &&
+            startTime.month === TRIGGER_START.month &&
+            startTime.day === TRIGGER_START.day &&
+            startTime.hour === TRIGGER_START.hour &&
+            startTime.minute === TRIGGER_START.minute;
+
+        const matchEnd =
+            endTime.year === TRIGGER_END.year &&
+            endTime.month === TRIGGER_END.month &&
+            endTime.day === TRIGGER_END.day &&
+            endTime.hour === TRIGGER_END.hour &&
+            endTime.minute === TRIGGER_END.minute;
+
+        if (matchStart && matchEnd) {
+            resultTip.classList.remove('show');
+            recordList.classList.add('show');
+        } else {
+            recordList.classList.remove('show');
+            resultTip.classList.add('show');
+        }
+    }
+
+    // 点击弹窗外部关闭
+    document.getElementById('timePickerModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeTimePicker();
+        }
+    });
+</script>
+
+</body>
+</html>
